@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { BrowserProvider, Contract } from "ethers";
-import { useAccount, useWalletClient, usePublicClient } from "wagmi";
+import { useAccount, useWalletClient, usePublicClient, useChainId } from "wagmi";
 import { Header } from "./components/Header";
 import { StatsPanel } from "./components/StatsPanel";
 import { GameBoard } from "./components/GameBoard";
@@ -17,6 +17,8 @@ const App: React.FC = () => {
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
+  const chainId = useChainId();
+  const prevChainIdRef = useRef<number | null>(null);
 
   // --- Blockchain State ---
   const [provider, setProvider] = useState<any>(null);
@@ -374,23 +376,14 @@ const App: React.FC = () => {
     setStatus('');
   };
 
-  // --- Listen for chain changes ---
+  // --- Listen for chain changes (only when chain ID actually changes) ---
   useEffect(() => {
-    if (publicClient) {
-      const unwatch = publicClient.watchBlockNumber({
-        onBlockNumber: () => {
-          // Chain changed, reload to reinitialize
-          if (isConnected) {
-            window.location.reload();
-          }
-        },
-      });
-
-      return () => {
-        unwatch();
-      };
+    if (isConnected && chainId && prevChainIdRef.current !== null && prevChainIdRef.current !== chainId) {
+      console.log('Chain changed, reloading...', { from: prevChainIdRef.current, to: chainId });
+      window.location.reload();
     }
-  }, [publicClient, isConnected]);
+    prevChainIdRef.current = chainId;
+  }, [chainId, isConnected]);
 
   // --- Load stats on connect ---
   useEffect(() => {
