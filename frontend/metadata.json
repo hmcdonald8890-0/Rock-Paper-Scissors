@@ -1,0 +1,4 @@
+{
+  "name": "FHE Rock Paper Scissors",
+  "description": "A privacy-preserving Rock Paper Scissors game using Fully Homomorphic Encryption concepts on the Sepolia Testnet."
+}
